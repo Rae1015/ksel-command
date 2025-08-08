@@ -32,19 +32,20 @@ async def ksel_command(request: Request):
         for row in rows[:10]:
             cols = row.find_all("td")
             if len(cols) >= 8:
-                cert_no = cols[1].text.strip()
-                model = cols[3].text.strip()
-                version = cols[4].text.strip()
-                identifier = cols[2].text.strip()
-                cert_date = cols[5].text.strip()
-                exp_date = cols[6].text.strip()
+                typee = cols[1].text.strip()
+                cert_no = cols[2].text.strip()
+                identifier = cols[3].text.strip()
+                #version = cols[].text.strip()
+                model = cols[5].text.strip()
+                cert_date = cols[6].text.strip()
+                #exp_date = cols[6].text.strip()
 
                 result_text = (
-                    f"[{cert_no}]\n"
-                    f"{model} ({version})\n"
+                    f"[{typee}]\n"
+                    f"{model} \n"
                     f"{identifier}\n"
                     f"인증일자 : {cert_date}\n"
-                    f"만료일자 : {exp_date}"
+                    #f"만료일자 : {exp_date}"
                 )
                 results.append(result_text)
 
