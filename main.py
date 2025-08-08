@@ -33,17 +33,18 @@ async def ksel_command(request: Request):
         for row in rows[:10]:
             cols = row.find_all("td")
             if len(cols) >= 8:
-                cert_no = cols[1].text.strip()
-                model = cols[3].text.strip()
-                version = cols[4].text.strip()
-                identifier = cols[2].text.strip()
-                cert_date = cols[5].text.strip()
-                exp_date = cols[6].text.strip()
+                #cert_type = cols[1].text.strip()
+                cert_no = cols[2].text.strip()
+                identifier = cols[3].text.strip()
+                model_raw = cols[5].text.strip()
+                model = model_raw.split()[0]
+                date_raw = cols[6].text.strip()   # "2025.06.22\n\n2027.06.22"
+                cert_date = date_raw.split()[0]  # 공백(엔터, 스페이스) 기준으로 분리 후 첫 항목
+                exp_date = date_raw.split()[3] 
 
                 result_text = (
-                    f"[{cert_no}]\n"
-                    f"{model} ({version})\n"
-                    f"{identifier}\n"
+                    f"[{cert_no}] {model}"
+                    f"식별번호 : {identifier}\n"
                     f"인증일자 : {cert_date}\n"
                     f"만료일자 : {exp_date}"
                 )
