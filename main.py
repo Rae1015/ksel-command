@@ -1,40 +1,37 @@
-from fastapi import FastAPI, Request
-import httpx
+import asyncio
+from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
-app = FastAPI()
+async def search_crefia_model(model_name):
+    url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
 
-@app.post("/ksel")
-async def ksel_command(request: Request):
-    data = await request.json()
-    model_name = data.get("text", "").strip()
-    
-    if not model_name:
-        return {"text": "모델명을 입력해주세요. 예: /ksel KTC-K501"}
-    
-    search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
-    
-    payload = {
-        "searchKey": "03",  # 모델명 조건검색
-        "searchKeyword": model_name,
-        "currentPage": "1"
-    }
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Referer": search_url,
-        "Content-Type": "application/x-www-form-urlencoded",
-    }
-    
-    async with httpx.AsyncClient(headers=headers) as client:
-        response = await client.post(search_url, data=payload)
-        soup = BeautifulSoup(response.text, "html.parser")
-        
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)  # headless=False로 하면 브라우저 창 열림
+        page = await browser.new_page()
+
+        await page.goto(url)
+
+        # 조건검색 select 박스에서 '모델명' 선택 (value=03)
+        await page.select_option("#FindSlct", "03")
+
+        # 검색어 입력란에 모델명 입력
+        await page.fill("input[name=searchKeyword]", model_name)
+
+        # 검색 버튼 클릭
+        await page.click("button[type=submit]")
+
+        # 검색 결과 로딩 대기 (적절한 셀렉터로 변경 가능)
+        await page.wait_for_selector("table tbody tr")
+
+        # 결과 페이지 HTML 가져오기
+        content = await page.content()
+
+        await browser.close()
+
+        # BeautifulSoup 으로 테이블 파싱
+        soup = BeautifulSoup(content, "html.parser")
         rows = soup.select("table tbody tr")
-        if not rows:
-            return {"text": f"🔍 [{model_name}] 검색 결과가 없습니다."}
-        
+
         results = []
         for row in rows[:10]:
             cols = row.find_all("td")
@@ -45,7 +42,7 @@ async def ksel_command(request: Request):
                 identifier = cols[2].text.strip()
                 cert_date = cols[5].text.strip()
                 exp_date = cols[6].text.strip()
-                
+
                 result_text = (
                     f"[{cert_no}]\n"
                     f"{model} ({version})\n"
@@ -54,5 +51,11 @@ async def ksel_command(request: Request):
                     f"만료일자 : {exp_date}"
                 )
                 results.append(result_text)
-        
-        return {"text": "\n\n".join(results)}
+
+        return "\n\n".join(results)
+
+# 테스트 실행
+if __name__ == "__main__":
+    model = "KTC-K501"
+    result = asyncio.run(search_crefia_model(model))
+    print(result)
