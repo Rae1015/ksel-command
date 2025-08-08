@@ -45,9 +45,9 @@ async def ksel_command(request: Request):
 
                 result_text = (
                     f"[{cert_no}] {model}\n"
-                    f"식별번호 : {identifier}\n"
-                    f"인증일자 : {cert_date}\n"
-                    f"만료일자 : {exp_date}"
+                    f" - 식별번호 : {identifier}\n"
+                    f" - 인증일자 : {cert_date}\n"
+                    f" - 만료일자 : {exp_date}"
                 )
                 results.append(result_text)
 
