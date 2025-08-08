@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 import httpx
 from bs4 import BeautifulSoup
+import os
+import uvicorn
+
 
 app = FastAPI()
 
@@ -53,3 +56,11 @@ async def ksel_command(request: Request):
 
         final_message = "\n\n".join(results)
         return {"text": final_message}
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
