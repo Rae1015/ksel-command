@@ -9,7 +9,7 @@ async def ksel_command(request: Request):
     data = await request.json()
     text = data.get("text")
     if not text:
-        return {"text": "❗ 모델명을 입력해주세요. 예: /ksel SZZZZ123"}
+        return {"text": "❗ 모델명을 입력해주세요. 예: /ksel KTC-K501"}
 
     model_name = text.strip()
     search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
@@ -22,20 +22,25 @@ async def ksel_command(request: Request):
         if not rows:
             return {"text": f"🔍 [{model_name}] 검색 결과가 없습니다."}
 
-        # 모든 검색 결과를 문자열로 합치기
         results = []
-        for row in rows:
+        # 최대 10개의 결과만 처리
+        for row in rows[:10]:
             cols = row.find_all("td")
-            if len(cols) >= 4:
-                result_text = (
-                    f"📌 모델명: {cols[0].text.strip()}\n"
-                    f"🏢 제조사: {cols[1].text.strip()}\n"
-                    f"📅 등록일: {cols[2].text.strip()}\n"
-                    f"⏳ 만료일: {cols[3].text.strip()}"
-                )
-                results.append(result_text)
+            if len(cols) >= 8:
+                cert_no = cols[1].text.strip()          # 인증번호
+                model = cols[3].text.strip()           # 모델명
+                version = cols[4].text.strip()         # 버전
+                identifier = cols[2].text.strip()     # 단말기식별번호
+                cert_date = cols[5].text.strip()       # 인증일자
+                exp_date = cols[6].text.strip()        # 만료일자
 
-        # Dooray 메시지는 하나의 문자열로 반환해야 하므로 join
+                results.append((
+                    f"[{cert_no}]\n"
+                    f"{model} ({version})\n"
+                    f"{identifier}\n"
+                    f"인증일자 : {cert_date}\n"
+                    f"만료일자 : {exp_date}"
+                ))
+
         final_message = "\n\n".join(results)
-
         return {"text": final_message}
