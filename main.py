@@ -1,36 +1,33 @@
-import asyncio
-from playwright.async_api import async_playwright
+from fastapi import FastAPI, Request
+import httpx
 from bs4 import BeautifulSoup
 
-async def search_crefia_model(model_name):
-    url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
+app = FastAPI()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)  # headless=False로 하면 브라우저 창 열림
-        page = await browser.new_page()
+@app.post("/ksel")
+async def ksel_command(request: Request):
+    data = await request.json()
+    model_name = data.get("text", "").strip()
 
-        await page.goto(url)
+    if not model_name:
+        return {"text": "모델명을 입력해주세요. 예: /ksel KTC-K501"}
 
-        # 조건검색 select 박스에서 '모델명' 선택 (value=03)
-        await page.select_option("#FindSlct", "03")
+    search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
 
-        # 검색어 입력란에 모델명 입력
-        await page.fill("input[name=searchKeyword]", model_name)
+    payload = {
+        "searchKey": "03",           # 모델명 조건검색
+        #"searchKeyword": model_name,
+        "searchValue": model_name,
+        "currentPage": "1"
+    }
 
-        # 검색 버튼 클릭
-        await page.click("button[type=submit]")
-
-        # 검색 결과 로딩 대기 (적절한 셀렉터로 변경 가능)
-        await page.wait_for_selector("table tbody tr")
-
-        # 결과 페이지 HTML 가져오기
-        content = await page.content()
-
-        await browser.close()
-
-        # BeautifulSoup 으로 테이블 파싱
-        soup = BeautifulSoup(content, "html.parser")
+    async with httpx.AsyncClient() as client:
+        response = await client.post(search_url, data=payload)
+        soup = BeautifulSoup(response.text, "html.parser")
         rows = soup.select("table tbody tr")
+
+        if not rows:
+            return {"text": f"🔍 [{model_name}] 검색 결과가 없습니다."}
 
         results = []
         for row in rows[:10]:
@@ -52,10 +49,5 @@ async def search_crefia_model(model_name):
                 )
                 results.append(result_text)
 
-        return "\n\n".join(results)
-
-# 테스트 실행
-if __name__ == "__main__":
-    model = "KTC-K501"
-    result = asyncio.run(search_crefia_model(model))
-    print(result)
+        final_message = "\n\n".join(results)
+        return {"text": final_message}
