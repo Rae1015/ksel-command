@@ -44,7 +44,7 @@ async def ksel_command(request: Request):
                 exp_date = date_raw.split()[1] 
 
                 result_text = (
-                    f"[{cert_no}] {model}"
+                    f"[{cert_no}] {model}\n"
                     f"식별번호 : {identifier}\n"
                     f"인증일자 : {cert_date}\n"
                     f"만료일자 : {exp_date}"
