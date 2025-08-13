@@ -23,7 +23,7 @@ async def ksel_command(request: Request):
     if model_name in cache:
         cached_result, timestamp = cache[model_name]
         if now - timestamp < CACHE_DURATION:
-            return {"text": f"(캐시)\n{cached_result}"}
+            return {"text": f"{cached_result}"}
 
     # 2. 크레피아 사이트 요청
     search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
