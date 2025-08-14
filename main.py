@@ -1,9 +1,36 @@
+import os
 from fastapi import FastAPI, Request
 import httpx
 from bs4 import BeautifulSoup
 import uvicorn
 
 app = FastAPI()
+
+# 전역 AsyncClient (비동기 연결 풀)
+client = httpx.AsyncClient(
+    timeout=5.0,
+    limits=httpx.Limits(
+        max_connections=10,      # 최대 연결 수
+        max_keepalive_connections=5,  # Keep-Alive 유지 연결 수
+        keepalive_expiry=30.0    # Keep-Alive 연결 유지 시간(초)
+    )
+)
+
+@app.on_event("startup")
+async def warmup():
+    """
+    서버 시작 시 예열 작업: 크레피아 사이트를 한 번 호출해서 연결 풀 초기화
+    """
+    try:
+        search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
+        payload = {"searchKey": "03", "searchValue": "test", "currentPage": "1"}
+        resp = await client.post(search_url, data=payload)
+        if resp.status_code == 200:
+            print("✅ 예열 완료 (크레피아 사이트 연결 성공)")
+        else:
+            print(f"⚠️ 예열 실패 (status: {resp.status_code})")
+    except Exception as e:
+        print(f"❌ 예열 중 오류: {e}")
 
 @app.post("/ksel")
 async def ksel_command(request: Request):
@@ -20,8 +47,7 @@ async def ksel_command(request: Request):
         "currentPage": "1"
     }
 
-    async with httpx.AsyncClient(timeout=5.0) as client:  # 타임아웃 설정으로 응답 지연 방지
-        response = await client.post(search_url, data=payload)
+    response = await client.post(search_url, data=payload)
 
     soup = BeautifulSoup(response.text, "html.parser")
     rows = soup.select("table tbody tr")
