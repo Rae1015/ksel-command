@@ -1,5 +1,6 @@
 import os
 import asyncio
+from datetime import datetime
 from fastapi import FastAPI, Request
 import httpx
 from bs4 import BeautifulSoup
@@ -22,31 +23,51 @@ client = httpx.AsyncClient(
 cache = OrderedDict()
 CACHE_LIMIT = 20
 
-@app.on_event("startup")
-async def warmup():
+SEARCH_URL = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
+
+
+async def do_warmup():
     """
-    서버 시작 시 예열 작업: 크레피아 사이트를 한 번 호출해서 연결 풀 초기화
+    크레피아 사이트 호출해서 연결 풀 유지
     """
     try:
-        search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
         payload = {"searchKey": "03", "searchValue": "test", "currentPage": "1"}
-        resp = await client.post(search_url, data=payload)
+        resp = await client.post(SEARCH_URL, data=payload)
         if resp.status_code == 200:
-            print("✅ 예열 완료 (크레피아 사이트 연결 성공)")
+            print(f"✅ 예열 성공 ({datetime.now().strftime('%H:%M:%S')})")
         else:
             print(f"⚠️ 예열 실패 (status: {resp.status_code})")
     except Exception as e:
-        print(f"❌ 예열 중 오류: {e}")
+        print(f"❌ 예열 오류: {e}")
+
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    서버 시작 시 1회 예열 + 스케줄러 시작
+    """
+    await do_warmup()
+    asyncio.create_task(warmup_scheduler())
+
+
+async def warmup_scheduler():
+    """
+    8시~20시 사이 1시간마다 예열 실행
+    """
+    while True:
+        now = datetime.now()
+        if 8 <= now.hour <= 20:
+            await do_warmup()
+        await asyncio.sleep(3600)  # 1시간 대기
 
 
 async def fetch_model_info(model_name: str) -> str:
     """
     크레피아 사이트에서 모델 정보 조회
     """
-    search_url = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalList.xx"
     payload = {"searchKey": "03", "searchValue": model_name, "currentPage": "1"}
 
-    response = await client.post(search_url, data=payload)
+    response = await client.post(SEARCH_URL, data=payload)
     soup = BeautifulSoup(response.text, "html.parser")
     rows = soup.select("table tbody tr")
 
