@@ -24,9 +24,9 @@ SEARCH_URL = "https://www.crefia.or.kr/portal/store/cardTerminal/cardTerminalLis
 # ------------------------------
 # 헬스체크 루트 (/)
 # ------------------------------
-@app.get("/")
+@app.get("/", methods=["GET", "HEAD"])
 async def root():
-    return {"status": "✅ KSEL bot is running"}
+    return JSONResponse({"status": "✅ KSEL bot is running"})
 
 # ------------------------------
 # 크레피아 모델 정보 조회
