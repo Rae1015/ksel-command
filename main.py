@@ -52,13 +52,18 @@ async def startup_event():
 
 async def warmup_scheduler():
     """
-    8시~20시 사이 1시간마다 예열 실행
+    08:00~20:00 동안 10분 간격으로 예열 실행
+    나머지 시간은 sleep 상태 유지
     """
     while True:
         now = datetime.now()
-        if 8 <= now.hour <= 20:
+        if 8 <= now.hour < 20:
             await do_warmup()
-        await asyncio.sleep(3600)  # 1시간 대기
+            await asyncio.sleep(600)  # 10분 간격 (600초)
+        else:
+            # 업무시간 외에는 1시간마다 체크만 하고 대기
+            print(f"🌙 업무시간 아님, 예열 생략 ({now.strftime('%H:%M:%S')})")
+            await asyncio.sleep(3600)
 
 
 async def fetch_model_info(model_name: str) -> str:
@@ -66,7 +71,6 @@ async def fetch_model_info(model_name: str) -> str:
     크레피아 사이트에서 모델 정보 조회
     """
     payload = {"searchKey": "03", "searchValue": model_name, "currentPage": "1"}
-
     response = await client.post(SEARCH_URL, data=payload)
     soup = BeautifulSoup(response.text, "html.parser")
     rows = soup.select("table tbody tr")
