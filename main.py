@@ -1,6 +1,7 @@
 import os
 import asyncio
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, Response
 import httpx
 from bs4 import BeautifulSoup
 import uvicorn
@@ -29,12 +30,12 @@ async def health_check(request: Request):
     """
     루트 경로 헬스체크 엔드포인트
     - GET 요청: JSON 반환
-    - HEAD 요청: 빈 응답 (UptimeRobot 대응)
+    - HEAD 요청: body 없는 200 응답 (UptimeRobot 대응)
     """
     if request.method == "HEAD":
-        return JSONResponse(content=None, status_code=200)
+        return Response(status_code=200)   # body 없는 응답
     return JSONResponse({"status": "✅ KSEL bot is running"})
-    
+
 # ------------------------------
 # 크레피아 모델 정보 조회
 # ------------------------------
