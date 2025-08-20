@@ -62,7 +62,7 @@ async def fetch_model_info(model_name: str) -> str:
             exp_date = date_parts[1] if len(date_parts) > 1 else ""
 
             results.append(
-                f"[{cert_no}] {model}\n"
+                f"[{cert_no}] **{model}**\n"
                 f" - 식별번호 : {identifier}\n"
                 f" - 인증일자 : {cert_date}\n"
                 f" - 만료일자 : {exp_date}"
