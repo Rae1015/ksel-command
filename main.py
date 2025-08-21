@@ -78,6 +78,7 @@ async def ksel_command(request: Request):
     model_name = data.get("text", "").strip()
     response_url = data.get("responseUrl")
     channel_id = data.get("channelId")
+    message_id = data.get("id")  # 메시지 ID 추출
 
     if not model_name:
         return {"deleteOriginal": True, "text": "모델명을 입력해주세요. 예: /ksel ktc-k501"}
@@ -100,8 +101,9 @@ async def ksel_command(request: Request):
         # 3️⃣ 결과 메시지 전송 (검색중 메시지는 그대로 두고 새 메시지로)
         result_payload = {
             "text": search_result,
-            "replaceOriginal": True,
-            "channelId": channel_id
+            "deleteOriginal": True,
+            "channelId": channel_id,
+            "messageId": message_id
         }
         logger.info(f"📤 결과 메시지 전송: {result_payload}")
         await client.post(response_url, json=result_payload)
