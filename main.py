@@ -108,8 +108,8 @@ async def ksel_command(request: Request):
         logger.error(f"검색 결과 메시지 전송 실패: {e}")
 
     # 슬래시 커맨드에 바로 응답
-   # return JSONResponse({"deleteOriginal": True})
-    return JSONResponse()   
+    return JSONResponse({"deleteOriginal": True})
+    #return JSONResponse()   
 
 
 # ------------------------------
