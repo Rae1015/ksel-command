@@ -89,32 +89,32 @@ async def ksel_command(request: Request):
             "replaceOriginal": False,
             "channelId": channel_id
         }
-        logger.info(f"📤 검색중 메시지 전송: {searching_msg}")
+        #logger.info(f"📤 검색중 메시지 전송: {searching_msg}")
         await client.post(response_url, json=searching_msg)
 
         # 2️⃣ 모델 정보 조회
-        logger.info(f"⏳ 모델 정보 조회 시작: {model_name}")
+        #logger.info(f"⏳ 모델 정보 조회 시작: {model_name}")
         search_result = await asyncio.wait_for(fetch_model_info(model_name), timeout=3.0)
-        logger.info(f"✅ 조회 완료: {search_result}")
+        #logger.info(f"✅ 조회 완료: {search_result}")
 
         # 3️⃣ 결과 메시지 전송 (검색중 메시지는 그대로 두고 새 메시지로)
         result_payload = {
             "text": search_result,
-            "replaceOriginal": False,
+            "replaceOriginal": True,
             "channelId": channel_id
         }
-        logger.info(f"📤 결과 메시지 전송: {result_payload}")
+        #logger.info(f"📤 결과 메시지 전송: {result_payload}")
         await client.post(response_url, json=result_payload)
-        logger.info("📌 결과 메시지 전송 완료")
+        #logger.info("📌 결과 메시지 전송 완료")
 
         # 4️⃣ 최종 응답 (슬래시 커맨드 요청에 대한 200 OK)
-        return {"deleteOriginal": True, "text": f"검색 완료: {model_name}"}
+        return {"deleteOriginal": True, "text": result_payload}
 
     except asyncio.TimeoutError:
-        logger.warning(f"⚠️ [{model_name}] 조회 시간 초과")
+        #logger.warning(f"⚠️ [{model_name}] 조회 시간 초과")
         return {"deleteOriginal": True, "text": f"⚠️ [{model_name}] 조회 중 응답이 지연되었습니다."}
     except Exception as e:
-        logger.error(f"❌ 예외 발생: {e}")
+        #logger.error(f"❌ 예외 발생: {e}")
         return {"deleteOriginal": True, "text": f"❌ 오류 발생: {e}"}
 
 # ------------------------------
