@@ -88,7 +88,7 @@ async def ksel_command(request: Request):
         searching_msg = {
             "text": f"🔍 [{model_name}] 검색중입니다..."
             #"replaceOriginal": False,
-            #"channelId": channel_id
+            "channelId": channel_id
         }
         #logger.info(f"📤 검색중 메시지 전송: {searching_msg}")
         await client.post(response_url, json=searching_msg)
