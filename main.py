@@ -83,9 +83,7 @@ async def ksel_command(request: Request):
     try:
         if response_url and channel_id:
             await client.post(response_url, json={
-                "channelId": channel_id,
                 "text": f"🔍 [{model_name}] 검색중입니다...",
-                "replaceOriginal": False
             })
     except Exception as e:
         logger.error(f"검색중 메시지 전송 실패: {e}")
@@ -101,8 +99,8 @@ async def ksel_command(request: Request):
         if response_url and channel_id:
             await client.post(response_url, json={
                 "channelId": channel_id,
-                "text": result,
-                "replaceOriginal": True
+                "text": result
+               #"deleteOriginal": True
             })
     except Exception as e:
         logger.error(f"검색 결과 메시지 전송 실패: {e}")
