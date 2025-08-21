@@ -79,8 +79,8 @@ async def ksel_command(request: Request):
     logging.info(f"📥 Request Payload: {data}")  # payload 확인
 
     model_name = data.get("text", "").strip()
-    response_url = data.get("response_url")  # Dooray에서 내려주는 키
-    logging.info(f"📌 response_url = {response_url}")
+    response_url = data.get("responseurl")  # Dooray에서 내려주는 키
+    logging.info(f"📌 responseurl = {response_url}")
 
     if not model_name:
         return {
@@ -92,7 +92,7 @@ async def ksel_command(request: Request):
     asyncio.create_task(handle_search(model_name, response_url))
     return {
         "responseType": "inChannel",
-        "text": f"⏳ [{model_name}] 검색중입니다..."
+        "text": f"🔍 [{model_name}] 검색중입니다..."
     }
 
 
