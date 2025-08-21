@@ -103,9 +103,9 @@ async def ksel_command(request: Request):
             "replaceOriginal": True,
             "channelId": channel_id
         }
-        #logger.info(f"📤 결과 메시지 전송: {result_payload}")
+        logger.info(f"📤 결과 메시지 전송: {result_payload}")
         await client.post(response_url, json=result_payload)
-        #logger.info("📌 결과 메시지 전송 완료")
+        logger.info("📌 결과 메시지 전송 완료")
 
         # 4️⃣ 최종 응답 (슬래시 커맨드 요청에 대한 200 OK)
         return {"deleteOriginal": True, "text": result_payload}
