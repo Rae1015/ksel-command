@@ -43,10 +43,10 @@ async def send_dooray_message(response_url: str, message: str, replace: bool = F
         "text": message,
         "replaceOriginal": replace
     }
-    #logging.info(f"📤 Dooray Send: {payload}")
+    logging.info(f"📤 Dooray Send: {payload}")
     async with httpx.AsyncClient() as http_client:
         resp = await http_client.post(response_url, json=payload)
-        #logging.info(f"📥 Dooray Response: {resp.status_code}, {resp.text}")
+        logging.info(f"📥 Dooray Response: {resp.status_code}, {resp.text}")
 
 
 # ------------------------------
